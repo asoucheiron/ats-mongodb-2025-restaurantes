@@ -1,5 +1,60 @@
 //TAREAS OBLIGATORIAS
 
+//1. Esquemas de validación para ambas colecciones.
+/*
+restaurants
+*/
+db.runCommand({
+    collMod: "restaurants",
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["_id", "name", "type_of_food", "rating"],
+            properties: {
+                _id: { bsonType: "objectId" },
+                name: { bsonType: "string", description: "Nom del restaurant" },
+                type_of_food: { bsonType: "string", description: "Tipus de menjar" },
+                rating: {
+                    bsonType: "double",
+                    minimum: 0,
+                    maximum: 10,
+                    description: "Qualificació del restaurant"
+                }
+            }
+        }
+    },
+    validationLevel: "strict",
+
+});
+
+/*
+inspections
+*/
+db.runCommand({
+    collMod: "inspections",
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["_id", "restaurant_id", "inspection_date", "result"],
+            properties: {
+                _id: { bsonType: "objectId" },
+                restaurant_id: { bsonType: "objectId", description: "Referència al restaurant" },
+                inspection_date: { bsonType: "date", description: "Data de la inspecció" },
+                result: {
+                    bsonType: "string",
+                    enum: ["pass", "fail"],
+                    description: "Resultat de la inspecció"
+                }
+            }
+        }
+    },
+    validationLevel: "moderate",
+    validationAction: "error"
+});
+
+
+
+
 //2.Implementación de consultas en MongoDB
 
 /*
@@ -130,7 +185,6 @@ db.restaurants.find(
         "rating": { $gt: 4 }
     }
 ).explain("executionStats")
-
 
 
 
