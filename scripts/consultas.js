@@ -186,8 +186,65 @@ db.restaurants.find(
     }
 ).explain("executionStats")
 
+/*
+Caso de Uso
+->Un usuario quiere ver restaurantes de comida china en London
+->Quiere buscar aquellos que tienen más de un 4 de valoración
+->Quiere ver aquellos que tienen inspecciones de tipo "Pass".
+*/
 
-
+db.restaurants.aggregate([
+  {
+    $match: {
+      "type_of_food": "Chinese",
+      "address line 2": "London",
+      "rating": { $gt: 4 }
+    }
+  },
+  {
+    $lookup: {
+      "from": "inspections",
+      "let": {
+        "restaurantId": "$_id"
+      },
+      "pipeline": [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                {
+                  "$toString": "$restaurant_id"
+                },
+                {
+                  "$toString": "$$restaurantId"
+                }
+              ]
+            },
+            "result": "Pass"
+          }
+        }
+      ],
+      "as": "restaurantInspections"
+    }
+  },
+  {
+    $match: {
+      "restaurantInspections": { $ne: [] }
+    }
+  },
+  {
+    $project: {
+      name: 1,
+      address: 1,
+      "address line 2": 1,
+      outcode: 1,
+      postcode: 1,
+      rating: 1,
+      type_of_food: 1,
+      restaurantInspections: 1
+    }
+  }
+])
 
 
 
